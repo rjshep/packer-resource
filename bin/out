@@ -53,6 +53,8 @@ echo
 packer build -machine-readable $ARGS -var-file=/tmp/vars.json $SRC/$TEMPLATE \
   | tee /tmp/output | awk -F, '/,ui,/ { print $5 }' | sed -u 's#%!(PACKER_COMMA)#,#g;s#\\n#\n#g'
 
+cat /tmp/output
+
 # FIXME: include metadata such as AMI name, copied region: ami-id, etc.
 # ... um, but generalise it for other kinds of packer builders, yeah?
 
