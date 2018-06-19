@@ -41,7 +41,7 @@ for file in ${files[@]}; do
     echo "var_file $SRC/${file} does not exist" >&2
     exit 1
   else
-    args+="-var-file=$SRC/${file}"
+    args+="-var-file=$SRC/${file} "
   fi
 done
 
