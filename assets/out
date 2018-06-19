@@ -33,7 +33,7 @@ elif [ ! -f "$SRC/${template}" ]; then
   exit 1
 fi
 
-args=()
+declare -a args=()
 mapfile -t files < <(jq -r '.params.var_file // empty | if type =="array" then .[] else . end' < "${payload}")
 
 for file in ${files[@]}; do
@@ -41,7 +41,7 @@ for file in ${files[@]}; do
     echo "var_file $SRC/${file} does not exist" >&2
     exit 1
   else
-    args+="-var-file=$SRC/${file} "
+    args+=("-var-file=$SRC/${file}")
   fi
 done
 
