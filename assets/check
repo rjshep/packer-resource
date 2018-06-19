@@ -1,0 +1,33 @@
+#!/bin/bash
+
+set -eu -o pipefail
+exec 3>&1 1>&2
+
+payload=$(mktemp /tmp/resource-check.XXXXXX)
+
+cat > "${payload}" <&0
+
+current_ami=$(jq -r '.version.ami // ""' < "${payload}")
+
+region=$(jq -r '.source.region // ""' < "${payload}")
+if [ -z "$region" ]; then
+  region=$AWS_REGION
+fi
+
+if [ -z "$region" ]; then
+  echo "Unable to determine AWS region"
+  exit 1
+fi
+
+owners=$(jq -r '.source.owners // [] | join(" ") | if (length > 0) then "--owners " + . else empty end' < "${payload}")
+
+executable_users=$(jq -r '.source.executable_users // [] | join(" ") | if (length > 0) then "--executable-users " + . else empty end' < "${payload}")
+
+mapfile -t filters < <(jq -r '.source.filters // {} | to_entries | map("Name=" + .key +  ",Values=" + (.value | join(","))) | .[]' < "${payload}")
+
+filters_param=""
+if [ "${#filters[@]}" -ne 0 ]; then
+  filters_param="--filters"
+fi
+
+aws ec2 describe-images --region $region $owners $executable_users $filters_param "${filters[@]}" --query "sort_by(Images, &CreationDate)[].ImageId" | jq 'map({ "ami": .})' >&3

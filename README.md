@@ -4,21 +4,29 @@ A Concourse CI resource to build new [Amazon Machine Images (AMI) via Packer](ht
 
 ## Source Configuration
 
-- `aws_access_key_id`: Your AWS access key ID.
-
-- `aws_secret_access_key`: Your AWS secret access key.
-
-- `region`: *Required.* The AWS region to search for AMIs.
-
-If `aws_access_key_id` and `aws_secret_access_key` are not provided [packer will use credentials provided by the worker's IAM profile, if it has one](https://www.packer.io/docs/builders/amazon.html#using-an-iam-instance-profile).
+- `region` (optional string): The AWS region to work in - defaults to AWS_REGION environment variable
+- `owners` (optional list): The list of owners to use when searching for AMI during check
+- `executable_users` (optional list): The list of executable users to use when searching for AMI during check
+- `filters` (optional map): The [filters](https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-images.html) to match when searching for AMI during check
 
 ## Behaviour
+
+### `check`: Check for new versions of an AMI
+
+Returns an ordered list of versions that match the criteria specified in the source.  This can be used to trigger a new build when an AMI is updated.
+
+### `in`: Get metadata about an AMI
+
+Provides 3 files:
+- `version.txt` - a text file containing the selected AMI id
+- `version.json` - a JSON file containing the selected AMI id in the `ami` field
+- `image.json` - the AWS [metadata](https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-images.html) for the selected AMI
 
 ### `out`: Build a new AMI
 
 #### Parameters
-- `template`: *Required.* The path to the packer template.
-- `var_file`: *Required.* The path or list of paths to a [external JSON variable file](https://www.packer.io/docs/templates/user-variables.html).
+- `template` (required string): The path to the packer template.
+- `var_file` (optional string or list): The path or list of paths to a [external JSON variable file](https://www.packer.io/docs/templates/user-variables.html).
 
 All other parameters will be passed through to packer as variables.
 
@@ -29,23 +37,42 @@ resource_types:
 - name: packer
   type: docker-image
   source:
-    repository: jdub/packer-resource
+    repository: subnova/packer-resource
 
 resources:
-- name: build-ami
+- name: base-ami
   type: packer
   source:
-    aws_access_key_id: "..."
-    aws_secret_access_key: "..."
-    region: ap-southeast-2
+    region: eu-west-1
+    owners: [12345678]
+    filters:
+      name=Ubuntu *
+      tag:System=packer
+
+- name: created-ami
+  type: packer
+  source:
+    region: eu-west-1
+    owners: [self]
+    filters:
+      name=My amazing AMI *
+
+- name: my-ami-source
+  type: git
+  source:
+    uri: https://github.com/abc/repo
 
 jobs:
 - name: my-ami
   plan:
-  - put: build-ami
+  - get: my-ami-source
+    trigger: true
+  - get: base-ami
+    trigger: true
+  - put: created-ami
     params:
-      template: packer_template.json
+      template: my-ami-source/packer_template.json
       var_file:
-         - secrets.json
-         - foo.json
+        - base-ami/version.json
+        - my-ami-source/packer_params.json
   ```

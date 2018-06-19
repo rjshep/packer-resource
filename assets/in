@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -eu -o pipefail
+exec 3>&1 1>&2
+
+DEST="$1"
+
+payload=$(mktemp /tmp/resource-in.XXXXXX)
+cat > "${payload}" <&0
+
+version=$(jq -r '.version.ami' < "${payload}")
+
+region=$(jq -r '.source.region // ""' < "${payload}")
+if [ -z "$region" ]; then
+  region=$AWS_REGION
+fi
+
+if [ -z "$region" ]; then
+  echo "Unable to determine AWS region"
+  exit 1
+fi
+
+aws ec2 describe-images --image-ids $version --query='Images[0]' --region $region > $DEST/image.json
+echo $version > $DEST/version.txt
+jq -n --arg version "$version" '{"ami":$version}' > $DEST/version.json
+
+jq '{"version": {"ami": .ImageId}, "metadata": [{"name": "name", "value": .Name},{"name": "owner", "value": .OwnerId},{"name": "creation_date", "value": .CreationDate}]}' < "$DEST/image.json" >&3
