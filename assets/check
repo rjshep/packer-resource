@@ -4,8 +4,12 @@ set -eu -o pipefail
 exec 3>&1 1>&2
 
 payload=$(mktemp /tmp/resource-check.XXXXXX)
-
 cat > "${payload}" <&0
+
+DEBUG=$(jq -r '.source.debug // false' < "${payload}")
+if [ $DEBUG == "true" ]; then
+  set -x
+fi
 
 current_ami=$(jq -r '.version.ami // ""' < "${payload}")
 

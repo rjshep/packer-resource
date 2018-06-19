@@ -8,6 +8,11 @@ DEST="$1"
 payload=$(mktemp /tmp/resource-in.XXXXXX)
 cat > "${payload}" <&0
 
+DEBUG=$(jq -r '.source.debug // false' < "${payload}")
+if [ $DEBUG == "true" ]; then
+  set -x
+fi
+
 version=$(jq -r '.version.ami' < "${payload}")
 
 region=$(jq -r '.source.region // ""' < "${payload}")

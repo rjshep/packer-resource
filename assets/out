@@ -8,6 +8,11 @@ SRC="$1"
 payload=$(mktemp /tmp/resource-out.XXXXXX)
 cat > "${payload}" <&0
 
+DEBUG=$(jq -r '.source.debug // false' < "${payload}")
+if [ $DEBUG == "true" ]; then
+  set -x
+fi
+
 region=$(jq -r '.source.region // ""' < "${payload}")
 if [ -z "$region" ]; then
   region=$AWS_REGION
