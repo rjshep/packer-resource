@@ -11,8 +11,6 @@ if [ $DEBUG == "true" ]; then
   set -x
 fi
 
-current_ami=$(jq -r '.version.ami // ""' < "${payload}")
-
 region=$(jq -r '.source.region // ""' < "${payload}")
 if [ -z "$region" ]; then
   region=$AWS_REGION

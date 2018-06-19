@@ -46,8 +46,8 @@ resources:
     region: eu-west-1
     owners: ["12345678"]
     filters:
-      name: Ubuntu *
-      "tag:System": packer
+      name: ["Ubuntu *"]
+      "tag:System": ["packer"]
 
 - name: created-ami
   type: packer
@@ -55,7 +55,7 @@ resources:
     region: eu-west-1
     owners: [self]
     filters:
-      name: My amazing AMI *
+      name: ["My amazing AMI *"]
 
 - name: my-ami-source
   type: git
