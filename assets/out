@@ -23,6 +23,16 @@ if [ -z "$region" ]; then
   exit 1
 fi
 
+credentials=$(jq -r '.params.credentials // ""' < "${payload}")
+if [ -z "$credentials" ]; then
+  export AWS_SHARED_CREDENTIALS_FILE=$(pwd)/$credentials
+fi
+
+profile=$(jq -r '.params.profile // ""' < "${payload}")
+if [ -z "$payload"]; then
+  export AWS_PROFILE=$profile
+fi
+
 template=$(jq -r '.params.template // empty' < "${payload}")
 if [ -z "${template}" ]; then
   echo "template not passed in params:" >&2

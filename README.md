@@ -26,7 +26,10 @@ Provides 3 files:
 
 #### Parameters
 - `template` (required string): The path to the packer template.
-- `var_file` (optional string or list): The path or list of paths to a [external JSON variable file](https://www.packer.io/docs/templates/user-variables.html).
+- `var_file` (optional string or list): The path or list of paths to a [external JSON variable file]
+(https://www.packer.io/docs/templates/user-variables.html).
+- `credentials` (optional string): The path to the AWS credentials file to use
+- `profile` (optional string): The AWS profile to use (defaults to `default`)
 
 All other parameters will be passed through to packer as variables.
 
