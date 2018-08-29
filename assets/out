@@ -24,12 +24,13 @@ if [ -z "$region" ]; then
 fi
 
 credentials=$(jq -r '.params.credentials // ""' < "${payload}")
-if [ -z "$credentials" ]; then
+if [ ! -z "$credentials" ]; then
+  export AWS_SDK_LOAD_CONFIG = "true"
   export AWS_SHARED_CREDENTIALS_FILE=$(pwd)/$credentials
 fi
 
 profile=$(jq -r '.params.profile // ""' < "${payload}")
-if [ -z "$payload" ]; then
+if [ ! -z "$payload" ]; then
   export AWS_PROFILE=$profile
 fi
 
