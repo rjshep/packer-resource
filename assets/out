@@ -29,7 +29,7 @@ if [ -z "$credentials" ]; then
 fi
 
 profile=$(jq -r '.params.profile // ""' < "${payload}")
-if [ -z "$payload"]; then
+if [ -z "$payload" ]; then
   export AWS_PROFILE=$profile
 fi
 
