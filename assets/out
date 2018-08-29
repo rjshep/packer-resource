@@ -26,7 +26,7 @@ fi
 credentials=$(jq -r '.params.credentials // ""' < "${payload}")
 if [ ! -z "$credentials" ]; then
   export AWS_SDK_LOAD_CONFIG="true"
-  export AWS_SHARED_CREDENTIALS_FILE=$(pwd)/$credentials
+  export AWS_SHARED_CREDENTIALS_FILE=$SRC/$credentials
 fi
 
 profile=$(jq -r '.params.profile // ""' < "${payload}")
